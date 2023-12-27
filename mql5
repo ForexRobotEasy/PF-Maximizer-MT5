@@ -1,0 +1,76 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                           PF Maximizer MT5.mq5   |
+//|                                      Copyright © 2021, Forex Robot Easy Team  |
+//|                                           https://forexroboteasy.com   |
+//+------------------------------------------------------------------+
+
+// Indicator input parameters
+input int Threshold = 50; // Specific threshold for signal generation
+
+// Indicator buffers
+double Buffer[];
+
+//+------------------------------------------------------------------+
+//| Custom indicator initialization function                         |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+   // Set indicator buffers
+   SetIndexBuffer(0, Buffer, INDICATOR_DATA);
+
+   // Set indicator labels
+   SetIndexLabel(0, 'PF Maximizer');
+
+   // Return initialization success
+   return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Custom indicator deinitialization function                       |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+   // Remove indicator buffers
+   ArrayResize(Buffer, 0);
+}
+
+//+------------------------------------------------------------------+
+//| Custom indicator calculation function                            |
+//+------------------------------------------------------------------+
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime& time[],
+                const double& open[],
+                const double& high[],
+                const double& low[],
+                const double& close[],
+                const long& tick_volume[],
+                const long& volume[],
+                const int& spread[])
+{
+   // Calculate indicator values
+   for (int i = prev_calculated; i < rates_total; i++)
+   {
+      // Calculate moving average
+      double moving_average = iMA(NULL, 0, 14, 0, MODE_EMA, PRICE_CLOSE, i);
+
+      // Check for potential buy signal
+      if (moving_average > moving_average[i - 1] && Buffer[i - 1] <= Threshold)
+      {
+         Buffer[i] = 1; // Generate buy signal
+      }
+      // Check for potential sell signal
+      else if (moving_average < moving_average[i - 1] && Buffer[i - 1] >= Threshold)
+      {
+         Buffer[i] = -1; // Generate sell signal
+      }
+      else
+      {
+         Buffer[i] = 0; // No signal
+      }
+   }
+
+   // Return calculation success
+   return(rates_total);
+}
